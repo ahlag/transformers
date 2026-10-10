@@ -546,7 +546,7 @@ class Mamba2Mixer(nn.Module):
             B = B.view(batch_size, self.n_groups, self.ssm_state_size)
             C = C.view(batch_size, self.n_groups, self.ssm_state_size)
             D = self.D[:, None].expand(-1, self.head_dim)
-            dt_bias = self.dt_bias[:, None].expand(-1, self.head_dim)
+            dt = torch.clamp(F.softplus(dt + self.dt_bias[:, None].to(dt.dtype)), *self.time_step_limit)
 
             scan_output = mamba2_selective_state_update(
                 recurrent_state,
@@ -557,8 +557,6 @@ class Mamba2Mixer(nn.Module):
                 C,
                 D,
                 z=None,
-                dt_bias=dt_bias,
-                dt_softplus=True,
                 **kwargs,
             )
             scan_output = scan_output.view(batch_size, 1, -1)

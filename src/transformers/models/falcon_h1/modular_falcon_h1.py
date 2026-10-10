@@ -274,7 +274,7 @@ class FalconH1Mixer(BambaMixer):
             B = B.view(batch_size, self.n_groups, B.shape[2] // self.n_groups)
             C = C.view(batch_size, self.n_groups, C.shape[2] // self.n_groups)
             D = self.D[:, None, ...].expand(-1, self.head_dim)
-            dt_bias = self.dt_bias[:, None, ...].expand(-1, self.head_dim)
+            dt = torch.clamp(F.softplus(dt + self.dt_bias[:, None].to(dt.dtype)), *self.time_step_limit)
 
             scan_output = mamba2_selective_state_update(
                 recurrent_state,
@@ -286,8 +286,6 @@ class FalconH1Mixer(BambaMixer):
                 D,
                 # Key difference 2: Potential z gate into kernel
                 z=gate.view(batch_size, self.num_heads, self.head_dim) if not self.mamba_rms_norm else None,
-                dt_bias=dt_bias,
-                dt_softplus=True,
             )
             scan_output = scan_output.view(batch_size, 1, self.num_heads * self.head_dim)
 
