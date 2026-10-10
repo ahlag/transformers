@@ -316,6 +316,11 @@ class Mamba2ModelTest(ModelTesterMixin, GenerationTesterMixin, PipelineTesterMix
         config_and_inputs = self.model_tester.prepare_config_and_inputs()
         self.model_tester.create_and_check_mamba2_caching(*config_and_inputs)
 
+    def test_mamba2_caching_with_time_step_limit(self):
+        config, *inputs = self.model_tester.prepare_config_and_inputs()
+        config.time_step_limit = (0.5, float("inf"))
+        self.model_tester.create_and_check_mamba2_caching(config, *inputs)
+
     def test_kwargs_reach_mamba2_mixer(self):
         config_and_inputs = self.model_tester.prepare_config_and_inputs()
         self.model_tester.create_and_check_kwargs_reach_mamba2_mixer(*config_and_inputs)
